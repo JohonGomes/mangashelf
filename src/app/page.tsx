@@ -7,7 +7,7 @@ export default async function DashboardPage() {
     const stats = await getDashboardStats();
 
     return (
-        <div className="container mx-auto py-10">
+        <div className="container mx-auto py-10 px-4">
             <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <StatCard

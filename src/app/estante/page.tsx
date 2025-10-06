@@ -17,7 +17,7 @@ export default async function EstantePage({ searchParams }: EstantePageProps) {
   });
 
   return (
-    <div className="container mx-auto py-10">
+    <div className="container mx-auto py-10 px-4">
       <SearchControls />
 
       {mangas.length === 0 ? (
@@ -28,7 +28,7 @@ export default async function EstantePage({ searchParams }: EstantePageProps) {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-6">
           {mangas.map((manga) => (
             <MangaCard key={manga.id} manga={manga} />
           ))}
