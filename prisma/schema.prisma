@@ -1,0 +1,48 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Enum para os Gêneros disponíveis
+enum Genre {
+  SHOUJO
+  SHONEN
+  ACAO
+  MENINAS_MAGICAS
+  ISEKAI
+  DRAMA
+  ROMANCE
+  COMEDIA
+}
+
+// Enum para o Status de Leitura
+enum ReadingStatus {
+  QUERO_LER
+  LENDO
+  LIDO
+  PAUSADO
+  ABANDONADO
+}
+
+// Modelo do nosso Mangá
+model Manga {
+  id        String   @id @default(cuid())
+  title     String
+  author    String
+  genre     Genre
+  year      Int? // O '?' torna o campo opcional
+  pages     Int?
+  rating    Int?
+  synopsis  String?
+  cover     String?
+  status    ReadingStatus @default(QUERO_LER)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
