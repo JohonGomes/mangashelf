@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
+
 const prisma = new PrismaClient();
 
 // Esquema de validação com Zod
@@ -45,4 +46,19 @@ export async function createManga(formData: FormData) {
 
     revalidatePath('/'); // Avisa o Next.js para atualizar a lista de mangás na home (quando a tivermos)
     redirect('/'); // Redireciona o usuário para a página inicial
+}
+
+export async function deleteManga(id: string) {
+    try {
+        await prisma.manga.delete({
+            where: { id },
+        });
+    } catch (error) {
+        console.error("Falha ao deletar o mangá:", error);
+        // Retornar um objeto de erro pode ser útil
+        return { error: 'Não foi possível deletar o mangá.' };
+    }
+
+    revalidatePath('/'); // Limpa o cache da página inicial
+    redirect('/'); // Redireciona o usuário
 }
