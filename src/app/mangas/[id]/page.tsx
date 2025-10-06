@@ -1,4 +1,5 @@
-// src/app/mangas/[id]/page.tsx - VERSÃO DE DIAGNÓSTICO FINAL
+// src/app/mangas/[id]/page.tsx
+
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
@@ -13,25 +14,18 @@ interface MangaDetailsPageProps {
 }
 
 export default async function MangaDetailsPage({ params }: MangaDetailsPageProps) {
-    // ==================== LOGS DE DIAGNÓSTICO ====================
-    console.log(`\n--- [PÁGINA DE DETALHES] Procurando mangá com ID: ${params.id} ---`);
-
     const manga = await prisma.manga.findUnique({
         where: { id: params.id },
     });
 
-    console.log('--- [PÁGINA DE DETALHES] Resultado da busca no banco:', manga);
-    // =============================================================
-
     if (!manga) {
-        console.log('--- [PÁGINA DE DETALHES] Conclusão: Mangá não encontrado. Disparando 404. ---\n');
         notFound();
     }
 
     return (
         <div className="container mx-auto py-10">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="md-col-span-1 flex flex-col items-center space-y-4">
+                <div className="md:col-span-1 flex flex-col items-center space-y-4">
                     <div className="relative w-[300px] h-[450px] rounded-lg shadow-lg overflow-hidden">
                         {manga.cover ? (
                             <Image
@@ -39,6 +33,8 @@ export default async function MangaDetailsPage({ params }: MangaDetailsPageProps
                                 alt={`Capa de ${manga.title}`}
                                 fill
                                 className="object-cover"
+                                // Adicionando a propriedade 'sizes' para otimização
+                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                             />
                         ) : (
                             <PlaceholderImage />
