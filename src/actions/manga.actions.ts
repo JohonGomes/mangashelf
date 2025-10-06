@@ -2,11 +2,11 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
-// Esquema de validação com Zod
 const MangaSchema = z.object({
     title: z.string().min(1, 'O título é obrigatório.'),
     author: z.string().min(1, 'O autor é obrigatório.'),
@@ -19,97 +19,93 @@ const MangaSchema = z.object({
     cover: z.string().url('Insira uma URL válida.').optional().or(z.literal('')),
 });
 
-/**
- * Ação para criar um novo mangá no banco de dados.
- */
+// ... (a função getFilteredMangas continua igual)
+export async function getFilteredMangas(params: { query?: string; genre?: string }) {
+    const { query, genre } = params;
+    const where: Prisma.MangaWhereInput = {};
+    if (query) {
+        where.OR = [
+            { title: { contains: query, mode: 'insensitive' } },
+            { author: { contains: query, mode: 'insensitive' } },
+        ];
+    }
+    if (genre && genre !== 'TODOS') {
+        where.genre = genre as any;
+    }
+    try {
+        const mangas = await prisma.manga.findMany({
+            where,
+            orderBy: { createdAt: 'desc' },
+        });
+        return mangas;
+    } catch (error) {
+        return [];
+    }
+}
+
+
+// AÇÃO ATUALIZADA: createManga
 export async function createManga(formData: FormData) {
-    const formValues = Object.fromEntries(formData.entries());
-    const validatedFields = MangaSchema.safeParse(formValues);
+    const validatedFields = MangaSchema.safeParse(Object.fromEntries(formData.entries()));
 
     if (!validatedFields.success) {
-        console.error('ERRO DE VALIDAÇÃO:', validatedFields.error.flatten());
-        return { error: 'Dados inválidos.' };
+        return { success: false, message: 'Dados inválidos.' };
     }
 
     try {
-        await prisma.manga.create({
-            data: validatedFields.data,
-        });
+        await prisma.manga.create({ data: validatedFields.data });
+        revalidatePath('/estante');
+        return { success: true, message: 'Mangá criado com sucesso!' };
     } catch (error) {
-        console.error('ERRO AO SALVAR NO BANCO:', error);
-        return { error: 'Não foi possível criar o mangá no banco de dados.' };
+        return { success: false, message: 'Erro no banco de dados.' };
     }
-
-    revalidatePath('/');
-    redirect('/');
 }
 
-/**
- * Ação para deletar um mangá do banco de dados usando o ID.
- */
+// AÇÃO ATUALIZADA: updateManga
+export async function updateManga(id: string, formData: FormData) {
+    const validatedFields = MangaSchema.safeParse(Object.fromEntries(formData.entries()));
+
+    if (!validatedFields.success) {
+        return { success: false, message: 'Dados inválidos.' };
+    }
+
+    try {
+        const updatedManga = await prisma.manga.update({
+            where: { id },
+            data: validatedFields.data,
+        });
+        revalidatePath('/estante');
+        revalidatePath(`/mangas/${id}`);
+        return { success: true, message: 'Mangá atualizado com sucesso!', mangaId: updatedManga.id };
+    } catch (error) {
+        return { success: false, message: 'Erro no banco de dados.' };
+    }
+}
+
+
+// ... (as funções deleteManga e getDashboardStats continuam iguais por enquanto)
 export async function deleteManga(id: string) {
     try {
-        await prisma.manga.delete({
-            where: { id },
-        });
+      await prisma.manga.delete({ where: { id } });
+      revalidatePath('/');
+      revalidatePath('/estante');
+      return { success: true, message: 'Mangá apagado com sucesso!' };
     } catch (error) {
-        console.error("Falha ao deletar o mangá:", error);
-        return { error: 'Não foi possível deletar o mangá.' };
+      return { success: false, message: 'Não foi possível apagar o mangá.' };
     }
+  }
 
-    revalidatePath('/');
-    revalidatePath(`/mangas/${id}`);
-    redirect('/');
-}
-
-/**
- * Ação para atualizar um mangá existente.
- */
-export async function updateManga(id: string, formData: FormData) {
-    const formValues = Object.fromEntries(formData.entries());
-    const validatedFields = MangaSchema.safeParse(formValues);
-
-    if (!validatedFields.success) {
-        return { error: 'Dados inválidos.' };
-    }
-
-    try {
-        await prisma.manga.update({
-            where: { id },
-            data: validatedFields.data,
-        });
-    } catch (error) {
-        return { error: 'Não foi possível atualizar o mangá.' };
-    }
-
-    revalidatePath('/');
-    revalidatePath(`/mangas/${id}`);
-    redirect(`/mangas/${id}`);
-}
-
-/**
- * Ação para buscar as estatísticas do Dashboard.
- */
 export async function getDashboardStats() {
     try {
         const [totalMangas, lendo, lidos, paginasLidasData] = await prisma.$transaction([
             prisma.manga.count(),
             prisma.manga.count({ where: { status: 'LENDO' } }),
             prisma.manga.count({ where: { status: 'LIDO' } }),
-            prisma.manga.aggregate({
-                _sum: {
-                    pages: true,
-                },
-                where: {
-                    status: 'LIDO',
-                },
-            }),
+            prisma.manga.aggregate({ _sum: { pages: true }, where: { status: 'LIDO' } }),
         ]);
-
         const paginasLidas = paginasLidasData._sum.pages || 0;
         return { totalMangas, lendo, lidos, paginasLidas };
     } catch (error) {
-        console.error("Falha ao buscar estatísticas do dashboard:", error);
         return { totalMangas: 0, lendo: 0, lidos: 0, paginasLidas: 0 };
     }
 }

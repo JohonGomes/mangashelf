@@ -6,15 +6,41 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Genre, Manga, ReadingStatus } from '@prisma/client';
+import { useRouter } from 'next/navigation';
+import { useTransition } from 'react';
+import { toast } from 'sonner';
 
 interface MangaFormProps {
     initialData?: Manga;
-    formAction: (formData: FormData) => void;
+    // A ação agora é mais específica sobre o que retorna
+    formAction: (formData: FormData) => Promise<{ success: boolean; message: string; mangaId?: string }>;
 }
 
 export function MangaForm({ initialData, formAction }: MangaFormProps) {
+    const [isPending, startTransition] = useTransition();
+    const router = useRouter();
+
+    const handleSubmit = (formData: FormData) => {
+        startTransition(async () => {
+            const result = await formAction(formData);
+            if (result.success) {
+                toast.success(result.message);
+                // Redirecionamos do lado do cliente após o sucesso
+                if (initialData) { // Se estávamos a editar, voltamos para a página de detalhes
+                    router.push(`/mangas/${result.mangaId}`);
+                } else { // Se estávamos a criar, vamos para a estante
+                    router.push('/estante');
+                }
+            } else {
+                toast.error(result.message);
+            }
+        });
+    };
+
     return (
-        <form action={formAction} className="space-y-6">
+        // Agora o formulário chama a nossa função 'handleSubmit'
+        <form action={handleSubmit} className="space-y-6">
+            {/* ... O resto do formulário (todos os Inputs, Selects, etc.) continua exatamente igual ... */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label htmlFor="title" className="block text-sm font-medium mb-1">Título *</label>
@@ -69,8 +95,10 @@ export function MangaForm({ initialData, formAction }: MangaFormProps) {
                 <label htmlFor="synopsis" className="block text-sm font-medium mb-1">Sinopse</label>
                 <Textarea name="synopsis" id="synopsis" rows={4} defaultValue={initialData?.synopsis ?? ''} />
             </div>
-            <Button type="submit">
-                {initialData ? 'Salvar Alterações' : 'Adicionar Mangá'}
+
+            {/* O botão agora mostra um estado de carregamento! */}
+            <Button type="submit" disabled={isPending}>
+                {isPending ? 'Salvando...' : (initialData ? 'Salvar Alterações' : 'Adicionar Mangá')}
             </Button>
         </form>
     );

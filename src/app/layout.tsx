@@ -1,8 +1,10 @@
-// app/layout.tsx
+// src/app/layout.tsx
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Header } from "@/components/Header"; // 1. Importe o Header
+import { Header } from "@/components/Header";
+import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/components/ThemeProvider"; // 1. Importe o ThemeProvider
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,10 +19,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR">
-      <body className={inter.className}>
-        <Header /> {/* 2. Adicione o Header aqui */}
-        <main>{children}</main> {/* 3. O resto da página será renderizado aqui */}
+    <html lang="pt-BR" suppressHydrationWarning> {/* Adicione suppressHydrationWarning */}
+      <body>
+        {/* 2. Envolva a aplicação com o ThemeProvider */}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <Header />
+          <main>{children}</main>
+          <Toaster richColors />
+        </ThemeProvider>
       </body>
     </html>
   );

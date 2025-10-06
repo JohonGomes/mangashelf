@@ -15,6 +15,8 @@ import {
 import { Button } from './ui/button';
 import { deleteManga } from '@/actions/manga.actions';
 import { useTransition } from 'react';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 interface DeleteMangaButtonProps {
     mangaId: string;
@@ -22,29 +24,44 @@ interface DeleteMangaButtonProps {
 
 export function DeleteMangaButton({ mangaId }: DeleteMangaButtonProps) {
     const [isPending, startTransition] = useTransition();
+    const router = useRouter();
 
     const handleDelete = () => {
         startTransition(async () => {
-            await deleteManga(mangaId);
+            const result = await deleteManga(mangaId);
+
+            if (result.success) {
+                // 1. Mostramos a notificação primeiro
+                toast.success(result.message);
+
+                // 2. Usamos um pequeno atraso para garantir que a notificação seja visível
+                //    antes de a página mudar.
+                setTimeout(() => {
+                    router.push('/estante');
+                }, 800); // 0.8 segundos de atraso
+
+            } else {
+                toast.error(result.message);
+            }
         });
     };
 
     return (
         <AlertDialog>
             <AlertDialogTrigger asChild>
-                <Button variant="destructive">Deletar</Button>
+                <Button variant="destructive" size="sm" className="w-full">Apagar</Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Você tem certeza absoluta?</AlertDialogTitle>
+                    <AlertDialogTitle>Tem a certeza absoluta?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Essa ação não pode ser desfeita. Isso irá remover permanentemente o mangá da sua estante.
+                        Esta ação não pode ser desfeita. Isto irá remover permanentemente o mangá da sua estante.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel>Cancelar</AlertDialogCancel>
                     <AlertDialogAction onClick={handleDelete} disabled={isPending}>
-                        {isPending ? 'Deletando...' : 'Sim, deletar'}
+                        {isPending ? 'Apagando...' : 'Sim, apagar'}
                     </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>

@@ -1,6 +1,7 @@
 // src/components/Header.tsx
 import Link from "next/link";
 import { Button } from "./ui/button";
+import { ThemeToggle } from "./ThemeToggle"; // 1. Importe o ThemeToggle
 
 export function Header() {
     return (
@@ -16,6 +17,7 @@ export function Header() {
                     <Button asChild>
                         <Link href="/mangas/new">Adicionar Mangá</Link>
                     </Button>
+                    <ThemeToggle /> {/* 2. Adicione o botão aqui */}
                 </nav>
             </div>
         </header>
