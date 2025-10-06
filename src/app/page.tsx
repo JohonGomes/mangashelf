@@ -1,46 +1,36 @@
 // src/app/page.tsx
-import { MangaCard } from '@/components/MangaCard';
-import { Button } from '@/components/ui/button';
-import { PrismaClient } from '@prisma/client';
-import Link from 'next/link';
+import { getDashboardStats } from "@/actions/manga.actions";
+import { StatCard } from "@/components/StatCard";
+import { Book, BookCheck, BookOpen, NotebookTabs } from "lucide-react";
 
-const prisma = new PrismaClient();
+export default async function DashboardPage() {
+    const stats = await getDashboardStats();
 
-// Função para buscar os mangás
-async function getMangas() {
-  const mangas = await prisma.manga.findMany({
-    orderBy: {
-      createdAt: 'desc', // Mostra os mais recentes primeiro
-    },
-  });
-  return mangas;
-}
-
-// A página agora é uma função assíncrona!
-export default async function Home() {
-  const mangas = await getMangas();
-
-  return (
-    <div className="container mx-auto py-10">
-      {mangas.length === 0 ? (
-        // Se não houver mangás, mostre esta mensagem
-        <div className="text-center">
-          <h2 className="text-2xl font-semibold">Sua estante está vazia!</h2>
-          <p className="mt-2 text-muted-foreground">
-            Que tal adicionar seu primeiro mangá?
-          </p>
-          <Button asChild className="mt-4">
-            <Link href="/mangas/new">Adicionar Mangá</Link>
-          </Button>
+    return (
+        <div className="container mx-auto py-10">
+            <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <StatCard
+                    title="Total de Mangás"
+                    value={stats.totalMangas}
+                    icon={Book}
+                />
+                <StatCard
+                    title="Lendo Atualmente"
+                    value={stats.lendo}
+                    icon={BookOpen}
+                />
+                <StatCard
+                    title="Finalizados"
+                    value={stats.lidos}
+                    icon={BookCheck}
+                />
+                <StatCard
+                    title="Páginas Lidas"
+                    value={stats.paginasLidas.toLocaleString('pt-BR')}
+                    icon={NotebookTabs}
+                />
+            </div>
         </div>
-      ) : (
-        // Se houver mangás, mostre a grade
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {mangas.map((manga) => (
-            <MangaCard key={manga.id} manga={manga} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
+    );
 }

@@ -1,6 +1,6 @@
 // src/components/Header.tsx
 import Link from "next/link";
-import { Button } from "./ui/button"; // Importe o Button
+import { Button } from "./ui/button";
 
 export function Header() {
     return (
@@ -9,8 +9,10 @@ export function Header() {
                 <Link href="/" className="text-2xl font-bold">
                     📚 MangaShelf
                 </Link>
-                <nav>
-                    {/* Adicione o botão aqui */}
+                <nav className="flex items-center space-x-4">
+                    <Button variant="ghost" asChild>
+                        <Link href="/estante">Minha Estante</Link>
+                    </Button>
                     <Button asChild>
                         <Link href="/mangas/new">Adicionar Mangá</Link>
                     </Button>
