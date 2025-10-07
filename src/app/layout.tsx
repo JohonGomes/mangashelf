@@ -1,12 +1,18 @@
 // src/app/layout.tsx
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Dela_Gothic_One } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Toaster } from "@/components/ui/sonner";
-import { ThemeProvider } from "@/components/ThemeProvider"; // 1. Importe o ThemeProvider
+import { ThemeProvider } from "@/components/ThemeProvider";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+
+const delaGothic = Dela_Gothic_One({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-dela-gothic",
+});
 
 export const metadata: Metadata = {
   title: "MangaShelf",
@@ -19,9 +25,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning> {/* Adicione suppressHydrationWarning */}
+    // Garantimos que não há espaços entre a tag <html> e a tag <body>
+    <html lang="pt-BR" className={`${inter.variable} ${delaGothic.variable}`} suppressHydrationWarning>
       <body>
-        {/* 2. Envolva a aplicação com o ThemeProvider */}
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
